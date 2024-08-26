@@ -6,15 +6,15 @@ server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind(('127.0.0.1', 55555))
 server.listen()
 clients = {}
-def broadcast(message):
-    for client in clients.values():
-        client.send(message)
+def broadcast(msg):
+    for c in clients.values():
+        c.send(msg)
 def handle(client, nickname):
     while True:
         try:
-            message = client.recv(1024)
-            if not message: break
-            broadcast(f"{nickname}: {message.decode()}".encode())
+            msg = client.recv(1024)
+            if not msg: break
+            broadcast(f"{nickname}: {msg.decode()}".encode())
         except: break
     client.close()
     del clients[nickname]
@@ -52,13 +52,13 @@ class ChatClient:
         self.root.protocol("WM_DELETE_WINDOW", self.stop)
         self.root.mainloop()
     def write(self):
-        message = self.input_area.get('1.0', 'end').strip()
-        if message: 
-            self.client.send(message.encode())
+        msg = self.input_area.get('1.0', 'end').strip()
+        if msg: 
+            self.client.send(msg.encode())
             self.input_area.delete('1.0', 'end')
-    def display_message(self, message):
+    def display_message(self, msg):
         self.text_area.config(state='normal')
-        self.text_area.insert('end', message + '\n')
+        self.text_area.insert('end', msg + '\n')
         self.text_area.yview('end')
         self.text_area.config(state='disabled')
     def stop(self):
@@ -67,14 +67,14 @@ class ChatClient:
     def receive(self):
         while True:
             try:
-                message = self.client.recv(1024).decode()
-                if message == 'NICK':
+                msg = self.client.recv(1024).decode()
+                if msg == 'NICK':
                     self.client.send(self.nickname.encode())
-                elif message == 'NICK_TAKEN':
+                elif msg == 'NICK_TAKEN':
                     print("Nickname already taken.")
                     self.stop()
                 else:
-                    self.display_message(message)
+                    self.display_message(msg)
             except: 
                 print("Connection lost!")
                 self.stop()
